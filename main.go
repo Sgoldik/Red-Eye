@@ -17,7 +17,7 @@ func main() {
 	fmt.Print("Enter site url: ")
 	fmt.Scanf("%s\n", &url)
 	driver := agouti.ChromeDriver(
-		agouti.ChromeOptions("args", []string{"--headless", "--disable-gpu", "--no-sandbox"}),
+		agouti.ChromeOptions("args", []string{"--headless", "--disable-gpu", "--no-sandbox", "--log-level=3"}),
 	)
 
 	if err := driver.Start(); err != nil {
@@ -33,10 +33,23 @@ func main() {
 		log.Fatal("Failed to navigate:", err)
 	}
 
-	vid, err := page.Find(`source`).Attribute("src")
-	log.Println(vid)
-
-	download(vid)
+	vid, err := page.Find(`video`).Attribute("src")
+	log.Println(vid == "")
+	if err != nil {
+		log.Fatal("Failed search source tag")
+	}
+	if vid == "" {
+		log.Println("Failed search video tag. Trying searcg source tag")
+		vid, err := page.Find(`source`).Attribute("src")
+		if err != nil {
+			log.Fatal("Failed search source tag")
+		}
+		log.Println(vid)
+		download(vid)
+	} else {
+		log.Println(vid)
+		download(vid)
+	}
 
 	if err := driver.Stop(); err != nil {
 		log.Fatal("Failed to close pages and stop WebDriver:", err)
